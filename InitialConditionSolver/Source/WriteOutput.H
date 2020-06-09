@@ -132,7 +132,10 @@ void output_final_data(const Vector<LevelData<FArrayBox> *> &a_multigrid_vars,
 #else
     string filename("InitialConditionsFinal.3d.hdf5");
 #endif
-
+    if (a_params.read_from_file != "none")
+    {
+        filename = "InitialConditionsFinal_From_File.3d.hdf5";
+    }
     // set up full data and write to hdf5 file ready for GRChombo
     HDF5Handle handle(filename, HDF5Handle::CREATE);
     Vector<LevelData<FArrayBox> *> grchombo_vars(a_multigrid_vars.size(), NULL);
@@ -211,6 +214,8 @@ void output_final_data(const Vector<LevelData<FArrayBox> *> &a_multigrid_vars,
 
     // shut the file
     handle.close();
+
+    pout() << "Final output done.\n";
 
     // clean up temporary storage
     for (int level = 0; level < a_multigrid_vars.size(); level++)

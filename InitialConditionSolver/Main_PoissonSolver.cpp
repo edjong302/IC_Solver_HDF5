@@ -14,6 +14,7 @@
 #include "MultilevelLinearOp.H"
 #include "ParmParse.H"
 #include "PoissonParameters.H"
+#include "ReadHDF5.H"
 #include "SetBCs.H"
 #include "SetGrids.H"
 #include "SetLevelData.H"
@@ -42,8 +43,8 @@ using std::cerr;
 // by chosen Aij (for now sourced by Bowen York data),
 // lapse = 1 shift = 0, phi is the scalar field and is used to
 // calculate the rhs, Pi = dphidt = 0.
-int poissonSolve(const Vector<DisjointBoxLayout> &a_grids,
-                 const PoissonParameters &a_params)
+int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
+                 PoissonParameters &a_params)
 {
 
     // the params reader
@@ -52,17 +53,17 @@ int poissonSolve(const Vector<DisjointBoxLayout> &a_grids,
     // create the necessary hierarchy of data components
     int nlevels = a_params.numLevels;
     // the user set initial conditions - currently including psi, phi, A_ij
-    Vector<LevelData<FArrayBox> *> multigrid_vars(nlevels, NULL);
+    Vector<LevelData<FArrayBox> *> multigrid_vars(nlevels, NULL); // edj A list of pointers to LD's
     // the correction to the conformal factor - what the solver solves for
-    Vector<LevelData<FArrayBox> *> dpsi(nlevels, NULL);
+    Vector<LevelData<FArrayBox> *> dpsi(nlevels, NULL); // edj idem
     // the solver vars - coefficients and source
-    Vector<LevelData<FArrayBox> *> rhs(nlevels, NULL);
+    Vector<LevelData<FArrayBox> *> rhs(nlevels, NULL); // edj idem
     // the integrand for constant K integrability condition
-    Vector<LevelData<FArrayBox> *> integrand(nlevels, NULL);
+    Vector<LevelData<FArrayBox> *> integrand(nlevels, NULL); // edj idem
     // the coeff for the I term
-    Vector<RefCountedPtr<LevelData<FArrayBox>>> aCoef(nlevels);
+    Vector<RefCountedPtr<LevelData<FArrayBox>>> aCoef(nlevels); // edj pointers to LD's
     // the coeff for the Laplacian
-    Vector<RefCountedPtr<LevelData<FArrayBox>>> bCoef(nlevels);
+    Vector<RefCountedPtr<LevelData<FArrayBox>>> bCoef(nlevels); // edj idem
 
     // Grid params
     Vector<ProblemDomain> vectDomains(nlevels); // the domains
@@ -73,6 +74,18 @@ int poissonSolve(const Vector<DisjointBoxLayout> &a_grids,
     dxLev *= a_params.coarsestDx;
     ProblemDomain domLev(a_params.coarsestDomain);
     IntVect ghosts = 3 * IntVect::Unit;
+
+    // We should import the DBL from the file if necessary
+    if (a_params.read_from_file != "none")
+    {
+        pout() << "We're reading from a file!\n";
+        Read_HDF5(a_grids, a_params.read_from_file);
+    }
+    else
+    {
+        pout() << "Using built in initial conditions\n";
+    }
+    
 
     // Declare variables here, with num comps, and ghosts for all
     // sources NB - we want output data to have 3 ghost cells to match GRChombo,
@@ -302,7 +315,10 @@ int main(int argc, char *argv[])
 
         // set up the grids, using the rhs for tagging to decide
         // where needs additional levels
-        set_grids(grids, params);
+        if (params.read_from_file == "none")
+        {
+            set_grids(grids, params);
+        }
 
         // Solve the equations!
         status = poissonSolve(grids, params);

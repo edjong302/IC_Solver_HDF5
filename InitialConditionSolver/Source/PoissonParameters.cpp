@@ -33,6 +33,14 @@ void getPoissonParameters(PoissonParameters &a_params)
     // correctly
     pout() << "alpha, beta = " << a_params.alpha << ", " << a_params.beta
            << endl;
+    if (pp.contains("read_from_file"))
+	{	
+		pp.get("read_from_file", a_params.read_from_file);
+	}
+	else
+	{
+		a_params.read_from_file = "none";
+	}
 
     // Initial conditions for the scalar field
     pp.get("G_Newton", a_params.G_Newton);
