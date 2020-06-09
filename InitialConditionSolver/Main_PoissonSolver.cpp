@@ -145,103 +145,103 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
     // Iterate linearised Poisson eqn for NL solution
     Real dpsi_norm = 0.0;
     Real constant_K = 0.0;
-    // for (int NL_iter = 0; NL_iter < max_NL_iter; NL_iter++)
-    // {
+    for (int NL_iter = 0; NL_iter < max_NL_iter; NL_iter++)
+    {
 
-    //     pout() << "Main Loop Iteration " << (NL_iter + 1) << " out of "
-    //            << max_NL_iter << endl;
+        pout() << "Main Loop Iteration " << (NL_iter + 1) << " out of "
+               << max_NL_iter << endl;
 
-    //     // Set integrability condition on K if periodic
-    //     if (a_params.periodic[0] == 1)
-    //     {
-    //         // Calculate values for integrand here with K unset
-    //         pout() << "Computing average K value... " << endl;
-    //         for (int ilev = 0; ilev < nlevels; ilev++)
-    //         {
-    //             set_constant_K_integrand(*integrand[ilev],
-    //                                      *multigrid_vars[ilev], vectDx[ilev],
-    //                                      a_params);
-    //         }
-    //         Real integral = computeSum(integrand, a_params.refRatio,
-    //                                    a_params.coarsestDx, Interval(0, 0));
-    //         Real volume = a_params.domainLength[0] * a_params.domainLength[1] *
-    //                       a_params.domainLength[2];
-    //         constant_K = -sqrt(abs(integral) / volume);
-    //         pout() << "Constant average K value set to " << constant_K << endl;
-    //     }
+        // Set integrability condition on K if periodic
+        if (a_params.periodic[0] == 1)
+        {
+            // Calculate values for integrand here with K unset
+            pout() << "Computing average K value... " << endl;
+            for (int ilev = 0; ilev < nlevels; ilev++)
+            {
+                set_constant_K_integrand(*integrand[ilev],
+                                         *multigrid_vars[ilev], vectDx[ilev],
+                                         a_params);
+            }
+            Real integral = computeSum(integrand, a_params.refRatio,
+                                       a_params.coarsestDx, Interval(0, 0));
+            Real volume = a_params.domainLength[0] * a_params.domainLength[1] *
+                          a_params.domainLength[2];
+            constant_K = -sqrt(abs(integral) / volume);
+            pout() << "Constant average K value set to " << constant_K << endl;
+        }
 
-    //     // Calculate values for coefficients here - see SetLevelData.cpp
-    //     // for details
-    //     for (int ilev = 0; ilev < nlevels; ilev++)
-    //     {
-    //         set_a_coef(*aCoef[ilev], *multigrid_vars[ilev], a_params,
-    //                    vectDx[ilev], constant_K);
-    //         set_b_coef(*bCoef[ilev], a_params, vectDx[ilev]);
-    //         set_rhs(*rhs[ilev], *multigrid_vars[ilev], vectDx[ilev], a_params,
-    //                 constant_K);
-    //     }
+        // Calculate values for coefficients here - see SetLevelData.cpp
+        // for details
+        for (int ilev = 0; ilev < nlevels; ilev++)
+        {
+            set_a_coef(*aCoef[ilev], *multigrid_vars[ilev], a_params,
+                       vectDx[ilev], constant_K);
+            set_b_coef(*bCoef[ilev], a_params, vectDx[ilev]);
+            set_rhs(*rhs[ilev], *multigrid_vars[ilev], vectDx[ilev], a_params,
+                    constant_K);
+        }
 
-    //     // set up solver factory
-    //     RefCountedPtr<AMRLevelOpFactory<LevelData<FArrayBox>>> opFactory =
-    //         RefCountedPtr<AMRLevelOpFactory<LevelData<FArrayBox>>>(
-    //             defineOperatorFactory(a_grids, vectDomains, aCoef, bCoef,
-    //                                   a_params));
+        // set up solver factory
+        RefCountedPtr<AMRLevelOpFactory<LevelData<FArrayBox>>> opFactory =
+            RefCountedPtr<AMRLevelOpFactory<LevelData<FArrayBox>>>(
+                defineOperatorFactory(a_grids, vectDomains, aCoef, bCoef,
+                                      a_params));
 
-    //     // define the multi level operator
-    //     mlOp.define(a_grids, a_params.refRatio, vectDomains, vectDx, opFactory,
-    //                 lBase);
+        // define the multi level operator
+        mlOp.define(a_grids, a_params.refRatio, vectDomains, vectDx, opFactory,
+                    lBase);
 
-    //     // set the more solver params
-    //     bool homogeneousBC = false;
-    //     solver.define(&mlOp, homogeneousBC);
-    //     solver.m_verbosity = a_params.verbosity;
-    //     solver.m_normType = 0;
-    //     solver.m_eps = tolerance;
-    //     solver.m_imax = max_iter;
+        // set the more solver params
+        bool homogeneousBC = false;
+        solver.define(&mlOp, homogeneousBC);
+        solver.m_verbosity = a_params.verbosity;
+        solver.m_normType = 0;
+        solver.m_eps = tolerance;
+        solver.m_imax = max_iter;
 
-    //     // output the data before the solver acts to check starting conditions
-    //     output_solver_data(dpsi, rhs, multigrid_vars, a_grids, a_params,
-    //                        NL_iter);
+        // output the data before the solver acts to check starting conditions
+        output_solver_data(dpsi, rhs, multigrid_vars, a_grids, a_params,
+                           NL_iter);
 
-    //     // Engage!
-    //     solver.solve(dpsi, rhs);
+        // Engage!
+        solver.solve(dpsi, rhs);
 
-    //     // Add the solution to the linearised eqn to the previous iteration
-    //     // ie psi -> psi + dpsi
-    //     // need to fill interlevel and intralevel ghosts first in dpsi
-    //     for (int ilev = 0; ilev < nlevels; ilev++)
-    //     {
+        // Add the solution to the linearised eqn to the previous iteration
+        // ie psi -> psi + dpsi
+        // need to fill interlevel and intralevel ghosts first in dpsi
+        for (int ilev = 0; ilev < nlevels; ilev++)
+        {
 
-    //         // For interlevel ghosts
-    //         if (ilev > 0)
-    //         {
-    //             QuadCFInterp quadCFI(a_grids[ilev], &a_grids[ilev - 1],
-    //                                  vectDx[ilev][0], a_params.refRatio[ilev],
-    //                                  1, vectDomains[ilev]);
-    //             quadCFI.coarseFineInterp(*dpsi[ilev], *dpsi[ilev - 1]);
-    //         }
+            // For interlevel ghosts
+            if (ilev > 0)
+            {
+                QuadCFInterp quadCFI(a_grids[ilev], &a_grids[ilev - 1],
+                                     vectDx[ilev][0], a_params.refRatio[ilev],
+                                     1, vectDomains[ilev]);
+                quadCFI.coarseFineInterp(*dpsi[ilev], *dpsi[ilev - 1]);
+            }
 
-    //         // For intralevel ghosts - this is done in set_update_phi0
-    //         // but need the exchange copier object to do this
-    //         Copier exchange_copier;
-    //         exchange_copier.exchangeDefine(a_grids[ilev], ghosts);
+            // For intralevel ghosts - this is done in set_update_phi0
+            // but need the exchange copier object to do this
+            Copier exchange_copier;
+            exchange_copier.exchangeDefine(a_grids[ilev], ghosts);
 
-    //         // now the update
-    //         set_update_psi0(*multigrid_vars[ilev], *dpsi[ilev],
-    //                         exchange_copier);
-    //     }
+            // now the update
+            set_update_psi0(*multigrid_vars[ilev], *dpsi[ilev],
+                            exchange_copier);
+        }
 
-    //     // check if converged or diverging and if so exit NL iteration for loop
-    //     dpsi_norm = computeNorm(dpsi, a_params.refRatio, a_params.coarsestDx,
-    //                             Interval(0, 0));
-    //     pout() << "The norm of dpsi after step " << NL_iter + 1 << " is "
-    //            << dpsi_norm << endl;
-    //     if (dpsi_norm < tolerance || dpsi_norm > 1e5)
-    //     {
-    //         break;
-    //     }
+        // check if converged or diverging and if so exit NL iteration for loop
+        dpsi_norm = computeNorm(dpsi, a_params.refRatio, a_params.coarsestDx,
+                                Interval(0, 0));
+        pout() << "The norm of dpsi after step " << NL_iter + 1 << " is "
+               << dpsi_norm << endl;
+        if (dpsi_norm < tolerance || dpsi_norm > 1e5)
+        {
+            break;
+        }
 
-    // } // end NL iteration loop
+    } // end NL iteration loop
 
     pout() << "The norm of dpsi at the final step was " << dpsi_norm << endl;
 
