@@ -61,7 +61,8 @@ void set_initial_conditions(LevelData<FArrayBox> &a_multigrid_vars,
             // for the BHs - this is added at the output data stage
             // and when we calculate psi_0 in the rhs etc
             // as it already satisfies Laplacian(psi) = 0
-            multigrid_vars_box(iv, c_psi_reg) = 1.0;
+            double rr = sqrt(iv[0] * iv[0] + iv[1] * iv[1] + iv[2] * iv[2]);
+            multigrid_vars_box(iv, c_psi_reg) = 2;// 1 + .01 * sin(2 * M_PI * iv[0]);
             dpsi_box(iv, 0) = 0.0;
 
             // set the phi value - need the distance from centre

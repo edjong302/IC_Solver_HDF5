@@ -16,7 +16,7 @@ beta  = -1.0
 L = 100.0
 N = 64 64 64
 # number of AMR refinement levels is max_level + 1
-max_level    = 6
+max_level    = 0
 # Threshold for AMR refinement, based on magnitude of rhs
 refine_threshold = 0.1
 #min box size
@@ -32,8 +32,8 @@ numMGsmooth = 4 # number of GSRB smooths before and after MG coarsening
 #preCondSolverDepth = 1
 num_mg     = 1 
 numMGIterations = 2 #this is the number of MG v-cycles in the preconditioner
-max_iterations = 100 #max number of solver iterations
-max_NL_iterations = 6 #non linear outside loop iterations
+max_iterations = 1 #max number of solver iterations
+max_NL_iterations = 1 #non linear outside loop iterations
 tolerance  = 1.0e-10  #solver tolerance for declaring convergence
 hang       = 1.0e-11  #solver tolerance for deciding when we're hung
 verbosity = 2 # higher number means more verbose output
@@ -66,7 +66,7 @@ phi_wavelength = 1
 # if you don't want BHs just set masses to zero
 
 #BH1
-bh1_bare_mass = 0.5
+bh1_bare_mass = 0
 # spin about z axis (this is J_z)
 bh1_spin = 0.1
 # boost in y direction (this is P_y)
@@ -75,7 +75,7 @@ bh1_momentum = 0.05
 bh1_offset = 10.0
 
 #BH2
-bh2_bare_mass = 0.5
+bh2_bare_mass = 0
 # spin about z axis (this is J_z)
 bh2_spin = 0.1
 # boost in y direction (this is P_y)
