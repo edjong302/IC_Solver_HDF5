@@ -41,6 +41,7 @@ void getPoissonParameters(PoissonParameters &a_params)
 	{
 		a_params.read_from_file = "none";
 	}
+    pout() << a_params.read_from_file << endl;
 
     // Initial conditions for the scalar field
     pp.get("G_Newton", a_params.G_Newton);

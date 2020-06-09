@@ -64,6 +64,9 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
     Vector<RefCountedPtr<LevelData<FArrayBox>>> aCoef(nlevels); // edj pointers to LD's
     // the coeff for the Laplacian
     Vector<RefCountedPtr<LevelData<FArrayBox>>> bCoef(nlevels); // edj idem
+    pout() << "Initialized vectors.\n";
+
+    Vector<LevelData<FArrayBox> *> multigrid_vars_dummy(nlevels, NULL);
 
     // Grid params
     Vector<ProblemDomain> vectDomains(nlevels); // the domains
@@ -78,12 +81,8 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
     // We should import the DBL from the file if necessary
     if (a_params.read_from_file != "none")
     {
-        pout() << "We're reading from a file!\n";
-        Read_HDF5(a_grids, a_params.read_from_file);
-    }
-    else
-    {
-        pout() << "Using built in initial conditions\n";
+        pout() << "We're reading from " << a_params.read_from_file << "!\n";
+        Read_grid_from_HDF5(a_grids, a_params.read_from_file, ghosts);
     }
     
 
@@ -92,8 +91,16 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
     // although not currently needed for 2nd order stencils used here
     for (int ilev = 0; ilev < nlevels; ilev++)
     {
-        multigrid_vars[ilev] =
-            new LevelData<FArrayBox>(a_grids[ilev], NUM_MULTIGRID_VARS, ghosts);
+        if (!(a_params.read_from_file == "none"))
+        {
+            multigrid_vars_dummy[ilev] = new LevelData<FArrayBox>(a_grids[ilev], NUM_MULTIGRID_VARS, ghosts);
+            Read_vars_from_HDF5(a_grids, multigrid_vars, a_params.read_from_file, ghosts);
+        }
+        else
+        {
+            multigrid_vars[ilev] = new LevelData<FArrayBox>(a_grids[ilev], NUM_MULTIGRID_VARS, ghosts);
+        }
+                
         dpsi[ilev] = new LevelData<FArrayBox>(a_grids[ilev], 1, ghosts);
         rhs[ilev] = new LevelData<FArrayBox>(a_grids[ilev], 1, IntVect::Zero);
         integrand[ilev] =
@@ -106,8 +113,18 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
         vectDx[ilev] = dxLev;
         // set initial guess for psi and zero dpsi
         // and values for other multigrid sources - phi and Aij
-        set_initial_conditions(*multigrid_vars[ilev], *dpsi[ilev], vectDx[ilev],
+        pout() << "Going for initial conditions now.\n";
+        if (a_params.read_from_file == "none")
+        {
+            set_initial_conditions(*multigrid_vars[ilev], *dpsi[ilev], vectDx[ilev],
                                a_params);
+        }
+        else
+        {
+            set_initial_conditions(*multigrid_vars_dummy[ilev], *dpsi[ilev], vectDx[ilev],
+                               a_params);
+        }
+        pout() << "Initial conditions set.\n";
 
         // prepare temp dx, domain vars for next level
         dxLev /= a_params.refRatio[ilev];
@@ -174,6 +191,7 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
         // for details
         for (int ilev = 0; ilev < nlevels; ilev++)
         {
+            pout() << "In this loop.\n";
             set_a_coef(*aCoef[ilev], *multigrid_vars[ilev], a_params,
                        vectDx[ilev], constant_K);
             set_b_coef(*bCoef[ilev], a_params, vectDx[ilev]);
@@ -281,6 +299,11 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
             delete dpsi[level];
             dpsi[level] = NULL;
         }
+        if (multigrid_vars_dummy[level] != NULL)
+        {
+            delete multigrid_vars_dummy[level];
+            multigrid_vars_dummy[level] = NULL;
+        }
     }
 
     int exitStatus = solver.m_exitStatus;
@@ -313,13 +336,15 @@ int main(int argc, char *argv[])
         // read params from file
         getPoissonParameters(params);
 
+        pout() << "Got params.\n";
+
         // set up the grids, using the rhs for tagging to decide
         // where needs additional levels
         if (params.read_from_file == "none")
         {
             set_grids(grids, params);
         }
-
+        pout() << "Set grids if no file to read from.\n";
         // Solve the equations!
         status = poissonSolve(grids, params);
 
