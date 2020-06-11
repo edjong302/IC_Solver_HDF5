@@ -61,6 +61,11 @@ void output_solver_data(const Vector<LevelData<FArrayBox> *> &a_dpsi,
     string fileName("vcPoissonOut.3d");
 #endif
 
+    if (!(a_params.read_from_file == "none"))
+    {
+        fileName += ".fromFile";
+    }
+
     char suffix[30];
     sprintf(suffix, "_%d.hdf5", iter);
     fileName += suffix;

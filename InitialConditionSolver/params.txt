@@ -12,7 +12,9 @@
 alpha = 1.0
 beta  = -1.0
 
-read_from_file = InitialConditionsFinal.3d.hdf5
+read_from_file = GRChombo_begin_file_periodicBCs.3d.hdf5
+#read_from_file = GRChombo_begin_file_DirichletBCs.3d.hdf5
+#read_from_file = InitialConditionsFinal.3d.hdf5
 
 # AMR grid params - grid length and number of cells by direction
 L = 100.0
@@ -33,7 +35,7 @@ buffer_size  = 3
 numMGsmooth = 4 # number of GSRB smooths before and after MG coarsening
 #preCondSolverDepth = 1
 num_mg     = 1 
-numMGIterations = 2 #this is the number of MG v-cycles in the preconditioner
+numMGIterations = 1 #this is the number of MG v-cycles in the preconditioner
 max_iterations = 1 #max number of solver iterations
 max_NL_iterations = 1 #non linear outside loop iterations
 tolerance  = 1.0e-10  #solver tolerance for declaring convergence
