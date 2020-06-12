@@ -82,7 +82,8 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
     if (a_params.read_from_file != "none")
     {
         pout() << "We're reading the grid from " << a_params.read_from_file << "!\n";
-        Read_HDF5(a_grids, a_params);
+        Read_grid_from_HDF5(a_grids, a_params);
+        pout() << "Done reading grid from HDF5.\n";
     }
     
 
@@ -93,13 +94,10 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
     {
         if (!(a_params.read_from_file == "none"))
         {
-            multigrid_vars[ilev] = new LevelData<FArrayBox>(a_grids[ilev], NUM_MULTIGRID_VARS, ghosts);
+            multigrid_vars_dummy[ilev] = new LevelData<FArrayBox>(a_grids[ilev], NUM_MULTIGRID_VARS, ghosts);
         }
-        else
-        {
-            multigrid_vars[ilev] = new LevelData<FArrayBox>(a_grids[ilev], NUM_MULTIGRID_VARS, ghosts);
-        }
-                
+
+        multigrid_vars[ilev] = new LevelData<FArrayBox>(a_grids[ilev], NUM_MULTIGRID_VARS, ghosts);        
         dpsi[ilev] = new LevelData<FArrayBox>(a_grids[ilev], 1, ghosts);
         rhs[ilev] = new LevelData<FArrayBox>(a_grids[ilev], 1, IntVect::Zero);
         integrand[ilev] =
@@ -120,8 +118,10 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
         }
         else
         {
-            set_initial_conditions(*multigrid_vars[ilev], *dpsi[ilev], vectDx[ilev],
+            set_initial_conditions(*multigrid_vars_dummy[ilev], *dpsi[ilev], vectDx[ilev],
                                a_params);
+            pout() << "Now going to read from HDF5.\n";
+            Read_vars_from_HDF5(multigrid_vars, a_grids, a_params, ghosts);
         }
         pout() << "Initial conditions set.\n";
 
@@ -317,11 +317,11 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
             delete dpsi[level];
             dpsi[level] = NULL;
         }
-        // if (multigrid_vars_dummy[level] != NULL)
-        // {
-        //     delete multigrid_vars_dummy[level];
-        //     multigrid_vars_dummy[level] = NULL;
-        // }
+        if (multigrid_vars_dummy[level] != NULL)
+        {
+            delete multigrid_vars_dummy[level];
+            multigrid_vars_dummy[level] = NULL;
+        }
     }
 
     int exitStatus = solver.m_exitStatus;
