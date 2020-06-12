@@ -141,7 +141,7 @@ void Read_vars_from_HDF5(Vector<LevelData<FArrayBox> *> &a_multigrid_vars,
 
         read(handle, *gr_chombo_vars[level], "data", aa_grids[level]);
 
-        transfer_data(*gr_chombo_vars[level], *a_multigrid_vars[level]);
+        transfer_data(*gr_chombo_vars[level], *(a_multigrid_vars[level]));
 
         // Clean up storage
         delete gr_chombo_vars[level];

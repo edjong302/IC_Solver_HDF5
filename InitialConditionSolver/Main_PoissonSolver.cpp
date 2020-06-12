@@ -120,8 +120,14 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
         {
             set_initial_conditions(*multigrid_vars_dummy[ilev], *dpsi[ilev], vectDx[ilev],
                                a_params);
-            pout() << "Now going to read from HDF5.\n";
-            Read_vars_from_HDF5(multigrid_vars, a_grids, a_params, ghosts);
+            set_initial_conditions(*multigrid_vars[ilev], *dpsi[ilev], vectDx[ilev],
+                                a_params);
+            // for (int ilev = 0; ilev < nlevels; ilev++)
+            // {
+            //     Read_vars_from_HDF5(multigrid_vars, a_grids, a_params, ghosts);
+            // }
+            // pout() << "Now going to read from HDF5.\n";
+            //Read_vars_from_HDF5(multigrid_vars, a_grids, a_params, ghosts);
         }
         pout() << "Initial conditions set.\n";
 
