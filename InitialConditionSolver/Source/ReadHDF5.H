@@ -21,15 +21,31 @@ void Read_HDF5(Vector<DisjointBoxLayout> &aa_grids, std::string filename)
     for (int level = 0; level < aa_grids.size(); level++)
     {
         HDF5HeaderData level_header;
-        level_header.readFromFile(handle);
+        // Set the HDF5 group and load level header
         char level_str[20];
         sprintf(level_str, "%d", level);
         const std::string label = std::string("level_") + level_str;
         handle.setGroup(label);
+        level_header.readFromFile(handle);
 
-        // Read boxes and processor assignments to create DisjointBoxLayout
+        // Check periodicity of file
+        bool periodic_bool[3];
+        for (int dir = 0; dir < SpaceDim; ++dir)
+        {
+            char dir_str[20];
+            sprintf(dir_str, "%d", dir);
+            const std::string periodic_label =
+                std::string("is_periodic_") + dir_str;
+            if (level_header.m_int[periodic_label] == true)
+            {
+                periodic_bool[dir] = true;
+                pout() << periodic_bool[dir] << endl;
+            }
+        }
+
+        // Read boxes and assign processors to create DisjointBoxLayout
         // for this level
-        ProblemDomain a_domain = level_header.m_box["prob_domain"];
+        ProblemDomain a_domain(level_header.m_box["prob_domain"], periodic_bool);
         Vector<Box> boxes;
         int error = read(handle, boxes);
         Vector<int> procIDs;

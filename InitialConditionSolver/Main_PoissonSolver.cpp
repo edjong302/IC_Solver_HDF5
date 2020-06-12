@@ -81,7 +81,7 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
     // We should import the DBL from the file if necessary
     if (a_params.read_from_file != "none")
     {
-        pout() << "We're reading from " << a_params.read_from_file << "!\n";
+        pout() << "We're reading the grid from " << a_params.read_from_file << "!\n";
         Read_HDF5(a_grids, a_params.read_from_file);
     }
     
@@ -204,10 +204,29 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
                 defineOperatorFactory(a_grids, vectDomains, aCoef, bCoef,
                                       a_params));
 
+        pout() << "Set up solver factory.\n";
+
+        pout() << "PD periodicity in main.\n";
+        for (int ilev = 0; ilev < a_grids.size(); ilev++)
+        {
+            for (int dir = 0; dir < 3; dir++)
+            {
+                pout() << vectDomains[ilev].isPeriodic(dir) << " ";
+            }
+            pout() << endl;
+        }        
+        pout() << "DBL checkperiodicity in main:\n";
+        for (int ilev = 0; ilev < a_grids.size(); ilev++)
+        {
+            pout() << a_grids[ilev].checkPeriodic(vectDomains[ilev]) << endl;
+        } 
+        
+
         // define the multi level operator
         mlOp.define(a_grids, a_params.refRatio, vectDomains, vectDx, opFactory,
                     lBase);
 
+        pout() << "Defined MLOperator.\n";
         // set the more solver params
         bool homogeneousBC = false;
         solver.define(&mlOp, homogeneousBC);
@@ -341,9 +360,9 @@ int main(int argc, char *argv[])
         // where needs additional levels
         if (params.read_from_file == "none")
         {
+            pout() << "Setting grids bc no file to read from.\n";
             set_grids(grids, params);
         }
-        pout() << "Set grids if no file to read from.\n";
         // Solve the equations!
         status = poissonSolve(grids, params);
 
