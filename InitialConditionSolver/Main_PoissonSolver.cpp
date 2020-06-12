@@ -82,7 +82,7 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
     if (a_params.read_from_file != "none")
     {
         pout() << "We're reading the grid from " << a_params.read_from_file << "!\n";
-        Read_HDF5(a_grids, a_params.read_from_file);
+        Read_HDF5(a_grids, a_params);
     }
     
 

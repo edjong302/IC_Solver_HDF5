@@ -13,10 +13,12 @@
 #ifndef READ_HDF5_H
 #define READ_HDF5_H
 
-void Read_HDF5(Vector<DisjointBoxLayout> &aa_grids, std::string filename)
+void Read_HDF5(Vector<DisjointBoxLayout> &aa_grids,
+               const PoissonParameters &a_params
+               )
 {
     aa_grids.resize(2);
-    HDF5Handle handle(filename, HDF5Handle::OPEN_RDONLY);
+    HDF5Handle handle(a_params.read_from_file, HDF5Handle::OPEN_RDONLY);
 
     for (int level = 0; level < aa_grids.size(); level++)
     {
@@ -28,7 +30,7 @@ void Read_HDF5(Vector<DisjointBoxLayout> &aa_grids, std::string filename)
         handle.setGroup(label);
         level_header.readFromFile(handle);
 
-        // Check periodicity of file
+        // Check and write periodicity of file
         bool periodic_bool[3];
         for (int dir = 0; dir < SpaceDim; ++dir)
         {
@@ -41,6 +43,12 @@ void Read_HDF5(Vector<DisjointBoxLayout> &aa_grids, std::string filename)
                 periodic_bool[dir] = true;
                 pout() << periodic_bool[dir] << endl;
             }
+        }
+        // For now we need the loop below because the final output bdry
+        // conditions are always periodic.
+        if (a_params.periodic[0] == 0)
+        {
+            for (int dir = 0; dir < SpaceDim; ++dir){periodic_bool[dir] = false;}
         }
 
         // Read boxes and assign processors to create DisjointBoxLayout
