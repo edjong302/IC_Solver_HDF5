@@ -26,15 +26,12 @@ void Read_grid_from_HDF5(Vector<DisjointBoxLayout> &aa_grids,
 
     for (int level = 0; level < num_levels; ++level)
     {
-        pout() << 3 << endl;
         HDF5HeaderData level_header;
         // Set the HDF5 group and load level header
         char level_str[20];
         sprintf(level_str, "%d", level);
         const std::string label = std::string("level_") + level_str;
-        pout() << 3 << endl;
         handle.setGroup(label);
-        pout() << 3 << endl;
         level_header.readFromFile(handle);
 
         // Check and write periodicity of file
@@ -48,7 +45,6 @@ void Read_grid_from_HDF5(Vector<DisjointBoxLayout> &aa_grids,
             if (level_header.m_int[periodic_label] == true)
             {
                 periodic_bool[dir] = true;
-                pout() << periodic_bool[dir] << endl;
             }
         }
         // For now we need the loop below because the final output bdry
@@ -57,19 +53,15 @@ void Read_grid_from_HDF5(Vector<DisjointBoxLayout> &aa_grids,
         {
             for (int dir = 0; dir < SpaceDim; ++dir){periodic_bool[dir] = false;}
         }
-        pout() << 2 << endl;
         // Read boxes and assign processors to create DisjointBoxLayout
         // for this level
         ProblemDomain a_domain(level_header.m_box["prob_domain"], periodic_bool);
         Vector<Box> boxes;
         int error = read(handle, boxes);
-        pout() << 2 << endl;
         Vector<int> procIDs;
         LoadBalance(procIDs, boxes);
         DisjointBoxLayout layout(boxes, procIDs, a_domain);
-        pout() << 2 << endl;
         aa_grids[level] = layout;
-        pout() << 2 << endl;
         pout() << "Closing handle\n";
     }
     handle.close();
@@ -113,41 +105,35 @@ void transfer_data(LevelData<FArrayBox> &a_grchombo_vars,
 
 }
 
-void Read_vars_from_HDF5(Vector<LevelData<FArrayBox> *> &a_multigrid_vars,
+void Read_vars_from_HDF5(LevelData<FArrayBox> &a_multigrid_vars,
                          const Vector<DisjointBoxLayout> aa_grids,
                          const PoissonParameters a_params, 
-                         const IntVect a_ghosts
+                         const IntVect a_ghosts, 
+                         int level
                         )
 {
     HDF5Handle handle(a_params.read_from_file, HDF5Handle::OPEN_RDONLY);
-    HDF5HeaderData header;
-    header.readFromFile(handle);
-    int num_levels = header.m_int["num_levels"];
-    Vector<LevelData<FArrayBox> *> gr_chombo_vars;
-    gr_chombo_vars.resize(num_levels);
 
-    for (int level = 0; level < num_levels; level++)
-    {
-        gr_chombo_vars[level] = new LevelData<FArrayBox>(
-            aa_grids[level], NUM_GRCHOMBO_VARS, a_ghosts);
+    LevelData<FArrayBox> *gr_chombo_vars;
+    gr_chombo_vars = new LevelData<FArrayBox>(aa_grids[level], NUM_GRCHOMBO_VARS, a_ghosts);
 
-        HDF5HeaderData level_header;
-        // Set the HDF5 group and load level header
-        char level_str[20];
-        sprintf(level_str, "%d", level);
-        const std::string label = std::string("level_") + level_str;
-        handle.setGroup(label);
-        level_header.readFromFile(handle);
+    //LevelData<FArrayBox>gr_chombo_vars(aa_grids[level], NUM_GRCHOMBO_VARS, a_ghosts);
 
-        read(handle, *gr_chombo_vars[level], "data", aa_grids[level]);
+    HDF5HeaderData level_header;
+    // Set the HDF5 group and load level header
+    char level_str[20];
+    sprintf(level_str, "%d", level);
+    const std::string label = std::string("level_") + level_str;
+    handle.setGroup(label);
+    level_header.readFromFile(handle);
 
-        transfer_data(*gr_chombo_vars[level], *(a_multigrid_vars[level]));
+    read(handle, *gr_chombo_vars, "data", aa_grids[level]);
 
-        // Clean up storage
-        delete gr_chombo_vars[level];
-        gr_chombo_vars[level] = NULL;
+    transfer_data(*gr_chombo_vars, a_multigrid_vars);
 
-    }
+    // Clean up storage
+    delete gr_chombo_vars;
+    gr_chombo_vars = NULL;
 
 }
 

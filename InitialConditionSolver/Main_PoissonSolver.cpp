@@ -76,16 +76,7 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
     RealVect dxLev = RealVect::Unit;
     dxLev *= a_params.coarsestDx;
     ProblemDomain domLev(a_params.coarsestDomain);
-    IntVect ghosts = 3 * IntVect::Unit;
-
-    // We should import the DBL from the file if necessary
-    if (a_params.read_from_file != "none")
-    {
-        pout() << "We're reading the grid from " << a_params.read_from_file << "!\n";
-        Read_grid_from_HDF5(a_grids, a_params);
-        pout() << "Done reading grid from HDF5.\n";
-    }
-    
+    IntVect ghosts = 3 * IntVect::Unit;    
 
     // Declare variables here, with num comps, and ghosts for all
     // sources NB - we want output data to have 3 ghost cells to match GRChombo,
@@ -122,12 +113,14 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
                                a_params);
             set_initial_conditions(*multigrid_vars[ilev], *dpsi[ilev], vectDx[ilev],
                                 a_params);
-            // for (int ilev = 0; ilev < nlevels; ilev++)
-            // {
-            //     Read_vars_from_HDF5(multigrid_vars, a_grids, a_params, ghosts);
-            // }
-            // pout() << "Now going to read from HDF5.\n";
-            //Read_vars_from_HDF5(multigrid_vars, a_grids, a_params, ghosts);
+            // pout() << "Now going to read vars from HDF5.\n";
+            // HDF5Handle handle(a_params.read_from_file, HDF5Handle::OPEN_RDONLY);
+            // HDF5HeaderData header;
+            // header.readFromFile(handle);
+            // a_params.numLevels = header.m_int["num_levels"];
+            // handle.close();
+            // Read_vars_from_HDF5(*multigrid_vars[ilev], a_grids, a_params, ghosts, ilev);
+            // pout() << "Read vars from HDF5.\n";
         }
         pout() << "Initial conditions set.\n";
 
@@ -369,6 +362,13 @@ int main(int argc, char *argv[])
             pout() << "Setting grids bc no file to read from.\n";
             set_grids(grids, params);
         }
+        else
+        {
+            pout() << "We're reading the grid from " << params.read_from_file << "!\n";
+            Read_grid_from_HDF5(grids, params);
+            pout() << "Done reading grid from HDF5.\n";
+        }
+        
         // Solve the equations!
         status = poissonSolve(grids, params);
 
