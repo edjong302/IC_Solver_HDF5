@@ -214,7 +214,7 @@ void output_final_data(const Vector<LevelData<FArrayBox> *> &a_multigrid_vars,
 
         level_header.writeToFile(handle);
         write(handle, a_grids[level]);
-        write(handle, *grchombo_vars[level], "data");
+        write(handle, *grchombo_vars[level], "data", 3 * IntVect::Unit);
     }
 
     // shut the file
