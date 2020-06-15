@@ -99,7 +99,7 @@ void transfer_data(LevelData<FArrayBox> &a_grchombo_vars,
             multigrid_vars_box(iv, c_A33_0) = 
                 grchombo_vars_box(iv, c_A33);
             multigrid_vars_box(iv, c_psi_reg) = 
-                grchombo_vars_box(iv, c_chi);
+                pow(grchombo_vars_box(iv, c_chi), -.25);
             multigrid_vars_box(iv, c_phi_0) = 
                 grchombo_vars_box(iv, c_phi);
         }
