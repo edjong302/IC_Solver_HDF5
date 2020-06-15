@@ -41,13 +41,14 @@ void Read_params_from_HDF5(PoissonParameters &aa_params)
     }
     aa_params.coarsestDx = level_0_header.m_real["dx"];
 
+    // Print what was changed
     pout() <<   "The following params were read from file and changed:\n" << 
-                "Max level = " << aa_params.maxLevel << endl << 
-                "Number of levels = " << aa_params.numLevels << endl << 
-                "N = " << aa_params.nCells[0] << " "
+                "\tMax level = " << aa_params.maxLevel << endl << 
+                "\tNumber of levels = " << aa_params.numLevels << endl << 
+                "\tN = " << aa_params.nCells[0] << " "
                        << aa_params.nCells[1] << " "
                        << aa_params.nCells[2] << endl << 
-                "Coarsest dx = " << aa_params.coarsestDx << endl;
+                "\tCoarsest dx = " << aa_params.coarsestDx << endl;
 }
 
 // function to read in the key params for solver

@@ -83,10 +83,10 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
     // although not currently needed for 2nd order stencils used here
     for (int ilev = 0; ilev < nlevels; ilev++)
     {
-        if (!(a_params.read_from_file == "none"))
-        {
-            multigrid_vars_dummy[ilev] = new LevelData<FArrayBox>(a_grids[ilev], NUM_MULTIGRID_VARS, ghosts);
-        }
+        // if (!(a_params.read_from_file == "none"))
+        // {
+        //     multigrid_vars_dummy[ilev] = new LevelData<FArrayBox>(a_grids[ilev], NUM_MULTIGRID_VARS, ghosts);
+        // }
 
         multigrid_vars[ilev] = new LevelData<FArrayBox>(a_grids[ilev], NUM_MULTIGRID_VARS, ghosts);        
         dpsi[ilev] = new LevelData<FArrayBox>(a_grids[ilev], 1, ghosts);
@@ -102,17 +102,11 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
         // set initial guess for psi and zero dpsi
         // and values for other multigrid sources - phi and Aij
         pout() << "Going for initial conditions now.\n";
-        if (a_params.read_from_file == "none")
-        {
-            set_initial_conditions(*multigrid_vars[ilev], *dpsi[ilev], vectDx[ilev],
+        set_initial_conditions(*multigrid_vars[ilev], *dpsi[ilev], vectDx[ilev],
                                a_params);
-        }
-        else
+        
+        if (a_params.read_from_file != "none")
         {
-            set_initial_conditions(*multigrid_vars_dummy[ilev], *dpsi[ilev], vectDx[ilev],
-                               a_params);
-            //  set_initial_conditions(*multigrid_vars[ilev], *dpsi[ilev], vectDx[ilev],
-            //                      a_params);
             pout() << "Now going to read vars from HDF5.\n";
             HDF5Handle handle(a_params.read_from_file, HDF5Handle::OPEN_RDONLY);
             HDF5HeaderData header;
@@ -201,21 +195,7 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
             RefCountedPtr<AMRLevelOpFactory<LevelData<FArrayBox>>>(
                 defineOperatorFactory(a_grids, vectDomains, aCoef, bCoef,
                                       a_params));
-
-        for (int ilev = 0; ilev < a_grids.size(); ilev++)
-        {
-            for (int dir = 0; dir < 3; dir++)
-            {
-                pout() << vectDomains[ilev].isPeriodic(dir) << " ";
-            }
-            pout() << endl;
-        }        
-        for (int ilev = 0; ilev < a_grids.size(); ilev++)
-        {
-            pout() << a_grids[ilev].checkPeriodic(vectDomains[ilev]) << endl;
-        } 
-        
-
+       
         // define the multi level operator
         mlOp.define(a_grids, a_params.refRatio, vectDomains, vectDx, opFactory,
                     lBase);

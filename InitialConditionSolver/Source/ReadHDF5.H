@@ -20,7 +20,7 @@ void Read_grid_from_HDF5(Vector<DisjointBoxLayout> &aa_grids,
     HDF5Handle handle(a_params.read_from_file, HDF5Handle::OPEN_RDONLY);
     HDF5HeaderData header;
     header.readFromFile(handle);
-    int num_levels = header.m_int["num_levels"];
+    int num_levels = a_params.numLevels;
     pout() << "numlevels is " << num_levels << endl;
     aa_grids.resize(num_levels);
 
@@ -116,7 +116,6 @@ void Read_vars_from_HDF5(LevelData<FArrayBox> &a_multigrid_vars,
 {
     LevelData<FArrayBox> *gr_chombo_vars;
     gr_chombo_vars = new LevelData<FArrayBox>(aa_grids[level], NUM_GRCHOMBO_VARS, a_ghosts);
-    LevelData<FArrayBox> &gr_chombo_vars_variable = *gr_chombo_vars;
 
     HDF5Handle handle(a_params.read_from_file, HDF5Handle::OPEN_RDONLY);
     HDF5HeaderData level_header;

@@ -56,25 +56,29 @@ void set_initial_conditions(LevelData<FArrayBox> &a_multigrid_vars,
             // work out location on the grid
             IntVect iv = bit();
 
-            // set psi to 1.0 and zero dpsi
-            // note that we don't include the singular part of psi
-            // for the BHs - this is added at the output data stage
-            // and when we calculate psi_0 in the rhs etc
-            // as it already satisfies Laplacian(psi) = 0
-            multigrid_vars_box(iv, c_psi_reg) = 1;// 1 + .01 * sin(2 * M_PI * iv[0]);
+            if (a_params.read_from_file == "none")
+            {               
+                // set psi to 1.0 and zero dpsi
+                // note that we don't include the singular part of psi
+                // for the BHs - this is added at the output data stage
+                // and when we calculate psi_0 in the rhs etc
+                // as it already satisfies Laplacian(psi) = 0
+                multigrid_vars_box(iv, c_psi_reg) = 1;// 1 + .01 * sin(2 * M_PI * iv[0]);
+
+                // set the phi value - need the distance from centre
+                RealVect loc;
+                get_loc(loc, iv, a_dx, a_params);
+
+                // set phi according to user defined function
+                multigrid_vars_box(iv, c_phi_0) =
+                    my_phi_function(loc, a_params.phi_amplitude,
+                                    a_params.phi_wavelength, a_params.domainLength);
+
+                // set Aij for spin and momentum according to BH params
+                set_binary_bh_Aij(multigrid_vars_box, iv, loc, a_params);
+            }
+            
             dpsi_box(iv, 0) = 0.0;
-
-            // set the phi value - need the distance from centre
-            RealVect loc;
-            get_loc(loc, iv, a_dx, a_params);
-
-            // set phi according to user defined function
-            multigrid_vars_box(iv, c_phi_0) =
-                my_phi_function(loc, a_params.phi_amplitude,
-                                a_params.phi_wavelength, a_params.domainLength);
-
-            // set Aij for spin and momentum according to BH params
-            set_binary_bh_Aij(multigrid_vars_box, iv, loc, a_params);
         }
     }
 } // end set_initial_conditions
