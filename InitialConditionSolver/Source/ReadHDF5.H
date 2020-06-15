@@ -62,10 +62,8 @@ void Read_grid_from_HDF5(Vector<DisjointBoxLayout> &aa_grids,
         LoadBalance(procIDs, boxes);
         DisjointBoxLayout layout(boxes, procIDs, a_domain);
         aa_grids[level] = layout;
-        pout() << "Closing handle\n";
     }
     handle.close();
-    pout() << "Closed handle\n";
 }
 
 void transfer_data(LevelData<FArrayBox> &a_grchombo_vars,

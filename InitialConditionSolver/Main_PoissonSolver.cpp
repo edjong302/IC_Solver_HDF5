@@ -64,7 +64,6 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
     Vector<RefCountedPtr<LevelData<FArrayBox>>> aCoef(nlevels); // edj pointers to LD's
     // the coeff for the Laplacian
     Vector<RefCountedPtr<LevelData<FArrayBox>>> bCoef(nlevels); // edj idem
-    pout() << "Initialized vectors.\n";
 
     Vector<LevelData<FArrayBox> *> multigrid_vars_dummy(nlevels, NULL);
 
@@ -101,7 +100,6 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
         vectDx[ilev] = dxLev;
         // set initial guess for psi and zero dpsi
         // and values for other multigrid sources - phi and Aij
-        pout() << "Going for initial conditions now.\n";
         set_initial_conditions(*multigrid_vars[ilev], *dpsi[ilev], vectDx[ilev],
                                a_params);
         
@@ -326,8 +324,6 @@ int main(int argc, char *argv[])
 
         // read params from file
         getPoissonParameters(params);
-
-        pout() << "Got params.\n";
 
         // set up the grids, using the rhs for tagging to decide
         // where needs additional levels
