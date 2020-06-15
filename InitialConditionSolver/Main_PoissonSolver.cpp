@@ -189,7 +189,6 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
         // for details
         for (int ilev = 0; ilev < nlevels; ilev++)
         {
-            pout() << "In this loop.\n";
             set_a_coef(*aCoef[ilev], *multigrid_vars[ilev], a_params,
                        vectDx[ilev], constant_K);
             set_b_coef(*bCoef[ilev], a_params, vectDx[ilev]);
@@ -203,9 +202,6 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
                 defineOperatorFactory(a_grids, vectDomains, aCoef, bCoef,
                                       a_params));
 
-        pout() << "Set up solver factory.\n";
-
-        pout() << "PD periodicity in main.\n";
         for (int ilev = 0; ilev < a_grids.size(); ilev++)
         {
             for (int dir = 0; dir < 3; dir++)
@@ -214,7 +210,6 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
             }
             pout() << endl;
         }        
-        pout() << "DBL checkperiodicity in main:\n";
         for (int ilev = 0; ilev < a_grids.size(); ilev++)
         {
             pout() << a_grids[ilev].checkPeriodic(vectDomains[ilev]) << endl;
@@ -225,7 +220,6 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
         mlOp.define(a_grids, a_params.refRatio, vectDomains, vectDx, opFactory,
                     lBase);
 
-        pout() << "Defined MLOperator.\n";
         // set the more solver params
         bool homogeneousBC = false;
         solver.define(&mlOp, homogeneousBC);

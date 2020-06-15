@@ -14,12 +14,41 @@
 #include "BRMeshRefine.H"
 #include "BiCGStabSolver.H"
 #include "BoxIterator.H"
+#include "CH_HDF5.H"
 #include "CONSTANTS.H"
 #include "CoarseAverage.H"
 #include "LoadBalance.H"
 #include "computeNorm.H"
 #include "parstream.H"
 #include <cmath>
+
+void Read_params_from_HDF5(PoissonParameters &aa_params)
+{
+    // Load main and level-0 headers
+    HDF5Handle handle(aa_params.read_from_file, HDF5Handle::OPEN_RDONLY);
+    HDF5HeaderData header, level_0_header;
+    header.readFromFile(handle);
+    handle.setGroup("level_0");
+    level_0_header.readFromFile(handle);
+    handle.close();
+    
+    // reset various relevant parameters
+    aa_params.maxLevel  = header.m_int["max_level"];
+    aa_params.numLevels = aa_params.maxLevel + 1;
+    for (int idir = 0; idir < SpaceDim; idir++)
+    {
+        aa_params.nCells[idir] = level_0_header.m_box["prob_domain"].size(idir);
+    }
+    aa_params.coarsestDx = level_0_header.m_real["dx"];
+
+    pout() <<   "The following params were read from file and changed:\n" << 
+                "Max level = " << aa_params.maxLevel << endl << 
+                "Number of levels = " << aa_params.numLevels << endl << 
+                "N = " << aa_params.nCells[0] << " "
+                       << aa_params.nCells[1] << " "
+                       << aa_params.nCells[2] << endl << 
+                "Coarsest dx = " << aa_params.coarsestDx << endl;
+}
 
 // function to read in the key params for solver
 void getPoissonParameters(PoissonParameters &a_params)
@@ -93,11 +122,20 @@ void getPoissonParameters(PoissonParameters &a_params)
     Real domain_length;
     pp.get("L", domain_length);
     a_params.coarsestDx = domain_length / a_params.nCells[0];
+
+    // If there is an HDF5 file to read from, the solver should use the params
+    // that are specified in that file's handle
+    if (a_params.read_from_file != "none")
+    {
+        Read_params_from_HDF5(a_params);
+    }
+
     for (int idir = 0; idir < SpaceDim; idir++)
     {
         a_params.domainLength[idir] =
             a_params.coarsestDx * a_params.nCells[idir];
     }
+    pout() << endl;
 
     // Chombo refinement and load balancing criteria
     pp.get("refine_threshold", a_params.refineThresh);
