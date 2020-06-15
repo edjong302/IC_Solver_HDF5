@@ -44,7 +44,7 @@ using std::cerr;
 // lapse = 1 shift = 0, phi is the scalar field and is used to
 // calculate the rhs, Pi = dphidt = 0.
 int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
-                 PoissonParameters &a_params)
+                 const PoissonParameters &a_params)
 {
 
     // the params reader

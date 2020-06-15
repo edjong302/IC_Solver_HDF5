@@ -12,17 +12,17 @@
 alpha = 1.0
 beta  = -1.0
 
-#read_from_file = GRChombo_begin_file_periodicBCs.3d.hdf5
-read_from_file = GRChombo_begin_file_DirichletBCs.3d.hdf5
+read_from_file = GRChombo_begin_file_periodicBCs.3d.hdf5
+#read_from_file = GRChombo_begin_file_DirichletBCs.3d.hdf5
 #read_from_file = InitialConditionsFinal.3d.hdf5
 
 # AMR grid params - grid length and number of cells by direction
 L = 100.0
 N = 64 64 64
 # number of AMR refinement levels is max_level + 1
-max_level    = 1
+max_level    = 2
 # Threshold for AMR refinement, based on magnitude of rhs
-refine_threshold = 0.05
+refine_threshold = 0.045
 #min box size
 block_factor = 8
 #max box size
@@ -37,7 +37,7 @@ numMGsmooth = 4 # number of GSRB smooths before and after MG coarsening
 num_mg     = 1 
 numMGIterations = 1 #this is the number of MG v-cycles in the preconditioner
 max_iterations = 1 #max number of solver iterations
-max_NL_iterations = 1 #non linear outside loop iterations
+max_NL_iterations = 2 #non linear outside loop iterations
 tolerance  = 1.0e-10  #solver tolerance for declaring convergence
 hang       = 1.0e-11  #solver tolerance for deciding when we're hung
 verbosity = 2 # higher number means more verbose output
@@ -48,7 +48,7 @@ coefficient_average_type = harmonic
 
 # Boundary conditions for domain-boundary faces 
 # 0 for non periodic, 1 for periodic (enforces same for all)
-is_periodic = 0
+is_periodic = 1
 # if not periodic, then what?
 # 1 -> const Neumann (gradient), 0 -> const Dirichlet (value)
 bc_lo       = 0 0 0
