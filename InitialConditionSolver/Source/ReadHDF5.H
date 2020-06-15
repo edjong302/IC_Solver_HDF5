@@ -86,8 +86,6 @@ void transfer_data(LevelData<FArrayBox> &a_grchombo_vars,
             IntVect iv = bit();
             // I want to copy the conformal factor and the 
             // extrinsic curvature info
-            multigrid_vars_box(iv, c_psi_reg) = 
-                grchombo_vars_box(iv, c_chi);
             multigrid_vars_box(iv, c_A11_0) = 
                 grchombo_vars_box(iv, c_A11);
             multigrid_vars_box(iv, c_A12_0) = 
@@ -100,6 +98,10 @@ void transfer_data(LevelData<FArrayBox> &a_grchombo_vars,
                 grchombo_vars_box(iv, c_A23);
             multigrid_vars_box(iv, c_A33_0) = 
                 grchombo_vars_box(iv, c_A33);
+            multigrid_vars_box(iv, c_psi_reg) = 
+                grchombo_vars_box(iv, c_chi);
+            multigrid_vars_box(iv, c_phi_0) = 
+                grchombo_vars_box(iv, c_phi);
         }
     }
 
@@ -112,13 +114,11 @@ void Read_vars_from_HDF5(LevelData<FArrayBox> &a_multigrid_vars,
                          int level
                         )
 {
-    HDF5Handle handle(a_params.read_from_file, HDF5Handle::OPEN_RDONLY);
-
     LevelData<FArrayBox> *gr_chombo_vars;
     gr_chombo_vars = new LevelData<FArrayBox>(aa_grids[level], NUM_GRCHOMBO_VARS, a_ghosts);
+    LevelData<FArrayBox> &gr_chombo_vars_variable = *gr_chombo_vars;
 
-    //LevelData<FArrayBox>gr_chombo_vars(aa_grids[level], NUM_GRCHOMBO_VARS, a_ghosts);
-
+    HDF5Handle handle(a_params.read_from_file, HDF5Handle::OPEN_RDONLY);
     HDF5HeaderData level_header;
     // Set the HDF5 group and load level header
     char level_str[20];
@@ -127,9 +127,36 @@ void Read_vars_from_HDF5(LevelData<FArrayBox> &a_multigrid_vars,
     handle.setGroup(label);
     level_header.readFromFile(handle);
 
-    read(handle, *gr_chombo_vars, "data", aa_grids[level]);
+    read(handle, *gr_chombo_vars, "data", aa_grids[level], Interval(), false);
+
+    
 
     transfer_data(*gr_chombo_vars, a_multigrid_vars);
+
+    // DataIterator dit = a_multigrid_vars.dataIterator();
+    // for (dit.begin(); dit.ok(); ++dit)
+    // {
+    //     FArrayBox &fabox = gr_chombo_vars_variable[dit()];
+    //     Box this_box = fabox.box();
+    //     BoxIterator bit(this_box);
+    //     for (bit.begin(); bit.ok(); ++bit)
+    //     {
+    //         IntVect iv = bit();
+    //         if (iv[0] == 12 && iv[1] == 12)
+    //         {
+    //             pout() << fabox(iv, c_phi_0) <<
+    //             " at " << iv[0] << " " << iv[1] << " " << iv[2] << endl;
+    //         }
+    //         if ((iv[0] < 0 || iv[1] < 0) || iv[2] < 0)
+    //         {
+    //             pout() << 
+    //                 " at " << 
+    //                 iv[0] << " " << iv[1] << " " << iv[2] << endl;
+    //         } 
+    //     }
+    // }
+
+    handle.close();
 
     // Clean up storage
     delete gr_chombo_vars;

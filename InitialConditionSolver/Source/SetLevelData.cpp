@@ -118,6 +118,14 @@ inline Real get_grad_phi_sq(const IntVect &a_iv, const FArrayBox &a_phi_fab,
             0.5 * (a_phi_fab(iv_offset2) - a_phi_fab(iv_offset1)) / a_dx[idir];
 
         grad_phi_sq += dphi_dx * dphi_dx;
+
+        if (grad_phi_sq > 1000)
+        {
+            pout() << 
+                "At " << 
+                a_iv[0] << " " << a_iv[1] << " " << a_iv[2] << " " << 
+                a_phi_fab(iv_offset2) << a_phi_fab(iv_offset1) << endl;
+        }
     }
     return grad_phi_sq;
 } // end get_grad_phi_sq
@@ -224,6 +232,12 @@ void set_constant_K_integrand(LevelData<FArrayBox> &a_integrand,
                                    12.0 * M_PI * a_params.G_Newton *
                                        grad_phi_sq * pow(psi_0, -4.0) +
                                    12.0 * laplacian_of_psi * pow(psi_0, -5.0);
+            // if (integrand_box(iv, 0) > 1)
+            // {
+            //     pout()  <<  grad_phi_sq << " " << 
+            //                 laplacian_of_psi <<
+            //                 " at " << loc[0]<< " " << loc[1]<< " " << loc[2] << endl;
+            // }
         }
     }
 } // end set_constant_K_integrand

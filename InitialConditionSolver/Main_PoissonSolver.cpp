@@ -111,16 +111,16 @@ int poissonSolve(Vector<DisjointBoxLayout> &a_grids,
         {
             set_initial_conditions(*multigrid_vars_dummy[ilev], *dpsi[ilev], vectDx[ilev],
                                a_params);
-            set_initial_conditions(*multigrid_vars[ilev], *dpsi[ilev], vectDx[ilev],
-                                a_params);
-            // pout() << "Now going to read vars from HDF5.\n";
-            // HDF5Handle handle(a_params.read_from_file, HDF5Handle::OPEN_RDONLY);
-            // HDF5HeaderData header;
-            // header.readFromFile(handle);
-            // a_params.numLevels = header.m_int["num_levels"];
-            // handle.close();
-            // Read_vars_from_HDF5(*multigrid_vars[ilev], a_grids, a_params, ghosts, ilev);
-            // pout() << "Read vars from HDF5.\n";
+            //  set_initial_conditions(*multigrid_vars[ilev], *dpsi[ilev], vectDx[ilev],
+            //                      a_params);
+            pout() << "Now going to read vars from HDF5.\n";
+            HDF5Handle handle(a_params.read_from_file, HDF5Handle::OPEN_RDONLY);
+            HDF5HeaderData header;
+            header.readFromFile(handle);
+            //a_params.numLevels = header.m_int["num_levels"];
+            handle.close();
+            Read_vars_from_HDF5(*multigrid_vars[ilev], a_grids, a_params, ghosts, ilev);
+            pout() << "Read vars from HDF5.\n";
         }
         pout() << "Initial conditions set.\n";
 
